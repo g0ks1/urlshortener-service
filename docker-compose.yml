@@ -1,0 +1,38 @@
+version: "3.9"
+
+services:
+  mysql:
+    image: mysql:latest
+    container_name: shortener_service_mysql
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_ROOT_HOST: "%"
+      MYSQL_DATABASE: bitly
+    ports:
+      - 3306:3306
+    volumes:
+      - ./mysql/init.sql:/data/application/init.sql
+      - mysql_data:/var/lib/mysql
+  server:
+    image: shortener/nestjs:latest
+    container_name: shortener_service_nestjs
+    build: ./server
+    environment: 
+      DB_HOST: mysql
+    ports:
+      - 3000:3000
+    depends_on: 
+      - mysql
+  client:
+    image: shortener/vuejs:latest
+    container_name: shortener_service_vuejs
+    build: ./client
+    ports:
+      - 80:80
+    depends_on:
+      - server
+
+volumes:
+  mysql_data:
